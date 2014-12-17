@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import mimetypes
+import time
 import sys
 import urllib
 
@@ -113,7 +114,7 @@ class Dataset(object):
     Namespaces are one honking...
     """
     @staticmethod
-    def create_or_update(**deets):
+    def _no_srsly_create_or_update(**deets):        
         resources = deets.pop('resources')
         try:
             pkg =  ckan.action.package_show(id=deets['name'])
@@ -146,6 +147,21 @@ class Dataset(object):
                 print 'Updating resource'
                 existing.update(resource)
                 ckan.action.resource_update(**existing)
+        return
+
+    @staticmethod
+    def create_or_update(**deets):
+        try:
+            Dataset._no_srsly_create_or_update(**deets)
+        except ckanapi.errors.CKANAPIError as err:
+            if '504 Gateway Time-out' in err.extra_msg:
+                print "Got a gateway timeout from the CKANs. Let's give her a minute to cool off"
+                print "Sleeping for 3secs"
+                time.sleep(3)
+                print "Here we go again! "
+                Dataset._no_srsly_create_or_update(**deets)
+            else:
+                raise
         return
 
     @staticmethod
