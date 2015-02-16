@@ -20,6 +20,7 @@ import urllib
 import ffs
 from ffs.contrib import http
 import ckanapi
+from ckanapi.errors import ValidationError
 
 inifile = ffs.Path('~/.dc.ini').abspath
 
@@ -153,6 +154,10 @@ class Dataset(object):
     def create_or_update(**deets):
         try:
             Dataset._no_srsly_create_or_update(**deets)
+        except ValidationError as verr:
+            print "We got a validation error. Your data is dodgy."
+            print verr
+            raise            
         except ckanapi.errors.CKANAPIError as err:
             if '504 Gateway Time-out' in err.extra_msg:
                 print "Got a gateway timeout from the CKANs. Let's give her a minute to cool off"
