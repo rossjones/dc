@@ -130,6 +130,9 @@ class Dataset(object):
             fh = resource['upload']
             contents = fh.read()
             size = fh.tell()
+            
+            # Reset the file pointer so ckanapi can read the whole file.
+            fh.seek(0)
             checksum = hashlib.md5(contents).hexdigest()
             resource['hash'] = checksum
             resource['size'] = size
